@@ -1,0 +1,23 @@
+apiVersion: neetworking.k8s.io/v1
+kind: Ingress
+meetadata:
+  name: synapse
+  labels:
+    app.kubernetes.io/name: synapse
+    app.kubernetes.io/part-of: matrix
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true" # HTTPS, requires certificates manager
+    traefik.ingress.kubernetes.io/router.tls.cetresolver: letsencrypt
+spec:
+  rules:
+    - host: {{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              name: synapse
+              port:
+                number: 8008
