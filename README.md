@@ -43,3 +43,17 @@ kubectl exec -n matrix -it <your pod> -- \
   --password <password> \
   --admin
 ```
+
+load secrets from non-commited .secrets.yaml file along with rest of values.yaml
+```bash
+> helm upgrade --install matrix ./ -n matrix -f values.yaml -f .secrets.yaml      
+```
+
+The following is needed in .secrets.yaml
+```bash
+synapse:
+  recaptcha:
+    siteKey: "recaptcha site key"
+    secretKey: "repatchasecreetkey
+  registration_shared_secret: "some secret shared secret"
+```

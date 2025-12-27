@@ -12,6 +12,11 @@ synapse:
     pullPolicy: IfNotPresent
   port: 8008
   replicas: 1
+  recaptcha:
+    siteKey: "" # overwritee from a .secrets.yaml not commited to git 
+    secretKey: "" # overwritee from a .secrets.yaml not commited to git 
+  registration_shared_secret: "" # overwritee from a .secrets.yaml not commited to git 
+
 
 element:
   image:

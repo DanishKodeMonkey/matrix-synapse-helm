@@ -5,5 +5,8 @@ metadata:
 data:
   synapse-extra-config.yaml: |
     enable_registration: true
-    enable_registration_without_verification: true
-    registration_shared_secret: "supersecretvalue"
+    enable_registration_without_verification: false
+    enable_registration_captcha: true
+    recaptcha_public_key: "{{ .Values.synapse.recaptcha.siteKey }}"
+    recaptcha_private_key: "{{ .Values.synapse.recaptcha.secretKey }}"
+    registration_shared_secret: "{{ .Values.synapse.registration_shared_secret }}"
