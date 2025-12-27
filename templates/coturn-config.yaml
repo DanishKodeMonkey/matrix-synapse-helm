@@ -5,21 +5,31 @@ metadata:
   namespace: matrix
 data:
   turnserver.conf: |
-    realm=matrix.danielrunge.dk
-    server-name=turn.danielrunge.dk
-    listening-ip=0.0.0.0
-    relay-ip=192.168.0.150
-    external-ip={{ .Values.coturn.public_ip_static }}
+    # Listening ports
     listening-port=3478
-    tls-listening-port=5349
-    min-port=49160
-    max-port=49200
-    fingerprint
+
+    # Credentials
     use-auth-secret
     static-auth-secret={{ .Values.coturn.turn_shared_secret }}
-    total-quota=100
-    bps-capacity=0
-    no-cli
+    lt-cred-mech
+
+    # Realm & server name
+    realm={{ .Values.coturn.realm}}
+    server-name={{ .Values.global.domain }}
+
+    # Network & relay
+    listening-ip=0.0.0.0
+    relay-ip={{ .Values.coturn.relay_ip }}
+    external-ip={{ .Values.coturn.public_ip_static }}
+
+    # Security
+    no-loopback-peers
     no-multicast-peers
-    verbose
+
+    # Port range for media relays
+    min-port=49160
+    max-port=49200
+
+    # Logging
     log-file=stdout
+    verbose

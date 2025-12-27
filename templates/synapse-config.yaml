@@ -10,3 +10,9 @@ data:
     recaptcha_public_key: "{{ .Values.synapse.recaptcha.siteKey }}"
     recaptcha_private_key: "{{ .Values.synapse.recaptcha.secretKey }}"
     registration_shared_secret: "{{ .Values.synapse.registration_shared_secret }}"
+    turn_uris:
+      - "turn:{{ .Values.coturn.turn_url }}:3478?transport=udp"
+      - "turn:{{ .Values.coturn.turn_url }}:3478?transport=tcp"
+    turn_shared_secret: "{{ .Values.coturn.turn_shared_secret}}"
+    turn_user_lifetime: 86400000
+    turn_allow_guests: true
