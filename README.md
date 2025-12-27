@@ -53,7 +53,13 @@ The following is needed in .secrets.yaml
 ```bash
 synapse:
   recaptcha:
-    siteKey: "recaptcha site key"
-    secretKey: "repatchasecreetkey
-  registration_shared_secret: "some secret shared secret"
+    siteKey: "reecaptcha site key, from example google"
+    secretKey: "reecaptcha secret key, from example google"
+  registration_shared_secret: "somestring"
+
+coturn:
+  turn_shared_secret: "some-long-string"
+  public_ip_static: "a public IP that can be accessed by UDP"
 ```
+
+TODO: TLS for coturn
