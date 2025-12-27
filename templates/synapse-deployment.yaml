@@ -15,10 +15,11 @@ spec:
       labels:
         app.kubernetes.io/name: synapse
     spec:
+      terminationGracePeriodSeconds: 30 # Pod fail safe.
       containers:
         - name: synapse
           image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
-          imagePullPolicy: {{ .Values.synapse.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.synapse.image.pullPolicy | default "IfNotPresent" }}
           env:
             - name: SYNAPSE_SERVER_NAME
               value: "{{ .Values.global.domain }}"
@@ -30,7 +31,14 @@ spec:
           volumeMounts:
             - name: synapse-data
               mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
       volumes:
         - name: synapse-data
-          PersistentVolumeClaim:
-            claimName: synapse-data
+          persistentVolumeClaim:
+            claimName: synapse-data # waits for PV by this name to claim
