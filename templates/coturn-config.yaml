@@ -6,7 +6,7 @@ metadata:
 data:
   turnserver.conf: |
     realm=matrix.danielrunge.dk
-    server-name=turn.matrix.danielrunge.dk
+    server-name=turn.danielrunge.dk
     listening-ip=0.0.0.0
     relay-ip=192.168.0.150
     external-ip={{ .Values.coturn.public_ip_static }}
