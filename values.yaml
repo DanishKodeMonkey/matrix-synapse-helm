@@ -1,2 +1,7 @@
 global:
   domain: danielrunge.dk
+
+synapse:
+  storage:
+    size: 10Gi
+    storageClassName: ""  # optional
