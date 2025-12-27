@@ -15,9 +15,16 @@ spec:
       labels:
         app.kubernetes.io/name: synapse
     spec:
-      terminationGracePeriodSeconds: 30 # Pod fail safe.
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: synapse-data
+          persistentVolumeClaim:
+            claimName: synapse-data
+        - name: synapse-extra-config
+          configMap:
+            name: synapse-extra-config
       initContainers:
-        - name: synapse-init
+        - name: synapse-generate
           image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
           imagePullPolicy: {{ .Values.synapse.image.pullPolicy | default "IfNotPresent" }}
           env:
@@ -34,6 +41,43 @@ spec:
           volumeMounts:
             - name: synapse-data
               mountPath: /data
+        - name: synapse-merge-config
+          image: mikefarah/yq:latest
+          securityContext:
+            runAsUser: 991
+            runAsGroup: 991
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              if [ -f /data/config/synapse-extra-config.yaml ]; then
+                echo "Merging extra Synapse configs..."
+                yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
+                  /data/homeserver.yaml /data/config/synapse-extra-config.yaml -i
+              fi
+          volumeMounts:
+            - name: synapse-data
+              mountPath: /data
+            - name: synapse-extra-config
+              mountPath: /data/config
+        # TODO: Find a way to make this work...
+        # - name: create-admin
+        #   image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
+        #   imagePullPolicy: {{ .Values.synapse.image.pullPolicy | default "IfNotPresent" }}
+        #   envFrom:
+        #     - secretRef:
+        #         name: synapse-admin
+        #   command: ["/bin/sh", "-c"]
+        #   args:
+        #     - |
+        #       if ! grep -q '"name": "${username}"' /data/homeserver.db 2>/dev/null; then
+        #         register_new_matrix_user -c /data/homeserver.yaml --user $username --password $password --admin
+        #       else
+        #         echo "Admin user already exists"
+        #       fi
+        #   volumeMounts:
+        #     - name: synapse-data
+        #       mountPath: /data
+
       containers:
         - name: synapse
           image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
@@ -49,6 +93,9 @@ spec:
           volumeMounts:
             - name: synapse-data
               mountPath: /data
+            - name: synapse-extra-config
+              mountPath: /data/synapse-extra-config.yaml
+              subPath: synapse-extra-config.yaml
           resources:
             requests:
               cpu: 100m
@@ -56,7 +103,3 @@ spec:
             limits:
               cpu: 500m
               memory: 1Gi
-      volumes:
-        - name: synapse-data
-          persistentVolumeClaim:
-            claimName: synapse-data # waits for PV by this name to claim

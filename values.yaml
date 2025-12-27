@@ -20,3 +20,4 @@ element:
     pullPolicy: IfNotPresent
   port: 80
   replicas: 1
+
