@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: element
+  namespace: matrix
+spec:
+  selector:
+    app: element
+  ports:
+    - name: default
+      protocol: TCP
+      port: {{ .Values.element.port | default 80 }}
+      targetPort: {{ .Values.element.port | default 80 }}

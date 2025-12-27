@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: synapse
     app.kubernetes.io/part-of: matrix
 spec:
-  replicas: 1
+  replicas: {{ .Values.synapse.replicas | default 1 }}
   selector:
     matchLabels:
       app.kubernetes.io/name: synapse
@@ -16,27 +16,24 @@ spec:
         app.kubernetes.io/name: synapse
     spec:
       terminationGracePeriodSeconds: 30 # Pod fail safe.
-      initContainers: # Init pod to generate the homeserver file required by synapse, as on thee eflow env config is no longer supported
+      initContainers:
         - name: synapse-init
           image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
           imagePullPolicy: {{ .Values.synapse.image.pullPolicy | default "IfNotPresent" }}
-          command: # Shell command to generate homeserver.yaml defaults with basic configs.
-            - sh
-            - -c
-            - |
-              if [ ! -f /data/homeserver.yaml ]; then
-              echo "Generating homeserver.yaml..."
-              synapse-homeserver generate \
-              --server-name {{ .Values.global.domain }} \
-              --report-stats yes \
-              --database sqlite3:/data/homeserver.db
-              else
-              echo "homeserver.yaml already exists, skipping generation."
-              fi
+          env:
+            - name: SYNAPSE_SERVER_NAME
+              value: "{{ .Values.global.domain }}"
+            - name: SYNAPSE_REPORT_STATS
+              value: "yes"
+            - name: SYNAPSE_CONFIG_PATH
+              value: /data/homeserver.yaml
+            - name: SYNAPSE_DATA_DIR
+              value: /data
+          args:
+            - generate
           volumeMounts:
             - name: synapse-data
               mountPath: /data
-
       containers:
         - name: synapse
           image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
@@ -47,7 +44,7 @@ spec:
             - name: SYNAPSE_REPORT_STATS
               value: "yes"
           ports:
-            - containerPort: 8008
+            - containerPort: {{ .Values.synapse.port | default 8008 }}
               name: http
           volumeMounts:
             - name: synapse-data

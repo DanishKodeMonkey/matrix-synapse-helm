@@ -6,10 +6,9 @@ metadata:
     app.kubernetes.io/name: synapse
     app.kubernetes.io/part-of: matrix
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true" # HTTPS, requires certificates manager
-    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    cert-manager.io/cluster-issuer: letsencrypt
 spec:
   ingressClassName: traefik
   rules:
@@ -22,4 +21,8 @@ spec:
               service:
                 name: synapse
                 port:
-                  number: 8008
+                  number: {{ .Values.synapse.port | default 8008 }}
+  tls:
+    - hosts:
+        - {{ .Values.global.domain }}
+      secretName: synapse-tls

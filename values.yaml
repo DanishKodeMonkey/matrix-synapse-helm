@@ -1,11 +1,22 @@
 global:
   domain: matrix.danielrunge.dk
+  elementDomain: element.danielrunge.dk
 
 synapse:
-  image:
-    repository: matrixdotorg/synapse
-    tag: sha-f79acff # latest non-dev build as of writing
-    pullPolicy: IfNotPresent
   storage:
     size: 10Gi
-    storageClassName: ""  # optional
+    storageClassName: ""
+  image:
+    repository: matrixdotorg/synapse
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 8008
+  replicas: 1
+
+element:
+  image:
+    repository: vectorim/element-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 80
+  replicas: 1

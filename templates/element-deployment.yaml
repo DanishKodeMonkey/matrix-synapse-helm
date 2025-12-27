@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: element
+  namespace: matrix
+spec:
+  replicas: {{ .Values.element.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: element
+  template:
+    metadata:
+      labels:
+        app: element
+    spec:
+      containers:
+      - name: element
+        image: vectorim/element-web:latest
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config.json
+          subPath: config.json
+        ports:
+        - containerPort: {{ .Values.element.port | default 80 }}
+          name: element
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.element.port | default 80 }}
+          initialDelaySeconds: 2
+          periodSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.element.port | default 80 }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: config-volume
+        configMap:
+          name: element-config

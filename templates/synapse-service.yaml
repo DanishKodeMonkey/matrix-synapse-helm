@@ -12,5 +12,5 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 8008
-      targetPort: 8008
+      port: {{ .Values.synapse.port | default 8008 }}
+      targetPort: {{ .Values.synapse.port | default 8008 }}
