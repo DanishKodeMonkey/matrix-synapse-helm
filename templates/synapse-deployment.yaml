@@ -16,6 +16,27 @@ spec:
         app.kubernetes.io/name: synapse
     spec:
       terminationGracePeriodSeconds: 30 # Pod fail safe.
+      initContainers: # Init pod to generate the homeserver file required by synapse, as on thee eflow env config is no longer supported
+        - name: synapse-init
+          image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
+          imagePullPolicy: {{ .Values.synapse.image.pullPolicy | default "IfNotPresent" }}
+          command: # Shell command to generate homeserver.yaml defaults with basic configs.
+            - sh
+            - -c
+            - |
+              if [ ! -f /data/homeserver.yaml ]; then
+              echo "Generating homeserver.yaml..."
+              synapse-homeserver generate \
+              --server-name {{ .Values.global.domain }} \
+              --report-stats yes \
+              --database sqlite3:/data/homeserver.db
+              else
+              echo "homeserver.yaml already exists, skipping generation."
+              fi
+          volumeMounts:
+            - name: synapse-data
+              mountPath: /data
+
       containers:
         - name: synapse
           image: "{{ .Values.synapse.image.repository }}:{{ .Values.synapse.image.tag }}"
