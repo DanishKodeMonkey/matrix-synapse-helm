@@ -2,6 +2,10 @@ global:
   domain: danielrunge.dk
 
 synapse:
+  image:
+    repository: matrixdotorg/synapse
+    tag: sha-f79acff # latest non-dev build as of writing
+    pullPolicy: IfNotPersistent
   storage:
     size: 10Gi
     storageClassName: ""  # optional
