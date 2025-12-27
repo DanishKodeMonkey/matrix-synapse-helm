@@ -46,7 +46,7 @@ kubectl exec -n matrix -it <your pod> -- \
 
 load secrets from non-commited .secrets.yaml file along with rest of values.yaml
 ```bash
-> helm upgrade --install matrix ./ -n matrix -f values.yaml -f .secrets.yaml      
+helm upgrade --install matrix ./ -n matrix -f values.yaml -f .secrets.yaml      
 ```
 
 The following is needed in .secrets.yaml
