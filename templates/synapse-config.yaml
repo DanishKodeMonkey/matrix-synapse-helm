@@ -16,3 +16,9 @@ data:
     turn_shared_secret: "{{ .Values.coturn.turn_shared_secret}}"
     turn_user_lifetime: 86400000
     turn_allow_guests: true
+    room_list_publication_rules:
+      - action: allow
+        user_id: '*'
+        room_id: '*'
+        alias: '*'
+        require_admin: true
