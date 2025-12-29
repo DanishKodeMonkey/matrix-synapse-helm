@@ -1,6 +1,6 @@
 global:
-  domain: matrix.danielrunge.dk
-  elementDomain: element.danielrunge.dk
+  domain: matrix.danishkodemonkey.net
+  elementDomain: element.danishkodemonkey.net
 
 synapse:
   storage:
@@ -22,6 +22,6 @@ element:
   replicas: 1
 
 coturn:
-  realm: turn.danielrunge.dk
+  realm: turn.danishkodemonkey.net
   relay_ip: 192.168.0.150 # internal IP of the cluster node
-  turn_url: turn.danielrunge.dk
+  turn_url: turn.danishkodemonkey.net
