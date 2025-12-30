@@ -24,8 +24,14 @@ spec:
             - name: config
               mountPath: /etc/coturn/turnserver.conf
               subPath: turnserver.conf
+            - name: coturn-tls
+              mountPath: /etc/coturn/tls
+              readOnly: true
 
       volumes:
         - name: config
           configMap:
             name: coturn-config
+        - name: coturn-tls
+          secret:
+            secretName: coturn-tls-secret

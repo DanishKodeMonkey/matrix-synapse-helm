@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: coturn-tls
+  namespace: matrix
+spec:
+  secretName: coturn-tls-secret
+  dnsNames:
+    - turn.danishkodemonkey.net
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer

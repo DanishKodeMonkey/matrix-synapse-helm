@@ -33,3 +33,8 @@ data:
     # Logging
     log-file=stdout
     verbose
+
+    # tls 
+    tls-listening-port=5349
+    cert=/etc/coturn/tls/tls.crt
+    pkey=/etc/coturn/tls/tls.key
