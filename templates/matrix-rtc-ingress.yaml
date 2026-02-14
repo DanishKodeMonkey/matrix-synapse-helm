@@ -1,0 +1,35 @@
+{{- if .Values.matrixrtc.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: matrix-rtc
+  namespace: matrix
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.matrixrtc.certManagerClusterIssuer }}
+spec:
+{{- if .Values.matrixrtc.ingressClassName }}
+  ingressClassName: {{ .Values.matrixrtc.ingressClassName }}
+{{- end }}
+  rules:
+    - host: {{ .Values.matrixrtc.host }}
+      http:
+        paths:
+          - path: /livekit/sfu
+            pathType: Prefix
+            backend:
+              service:
+                name: livekit
+                port:
+                  number: {{ .Values.matrixrtc.livekit.service.port }}
+          - path: /livekit/jwt
+            pathType: Prefix
+            backend:
+              service:
+                name: matrixrtc-jwt
+                port:
+                  number: {{ .Values.matrixrtc.jwt.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.matrixrtc.host }}
+      secretName: matrixrtc-tls-secret
+{{- end }}

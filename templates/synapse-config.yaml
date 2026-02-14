@@ -4,6 +4,7 @@ metadata:
   name: synapse-extra-config
 data:
   synapse-extra-config.yaml: |
+    public_baseurl: "https://{{ .Values.global.domain }}"
     enable_registration: true
     enable_registration_without_verification: false
     enable_registration_captcha: true
@@ -18,6 +19,12 @@ data:
     turn_shared_secret: "{{ .Values.coturn.turn_shared_secret}}"
     turn_user_lifetime: 86400000
     turn_allow_guests: true
+{{- if .Values.matrixrtc.enabled }}
+    extra_well_known_client_content:
+      org.matrix.msc4143.rtc_foci:
+        - type: livekit
+          livekit_service_url: "https://{{ .Values.matrixrtc.host }}/livekit/jwt"
+{{- end }}
     room_list_publication_rules:
       - action: allow
         user_id: '*'

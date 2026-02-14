@@ -1,0 +1,15 @@
+{{- if .Values.matrixrtc.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit
+  namespace: matrix
+spec:
+  selector:
+    app: livekit
+  ports:
+    - name: http
+      port: {{ .Values.matrixrtc.livekit.service.port }}
+      targetPort: {{ .Values.matrixrtc.livekit.service.port }}
+      protocol: TCP
+{{- end }}

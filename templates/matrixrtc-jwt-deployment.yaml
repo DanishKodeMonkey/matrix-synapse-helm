@@ -1,0 +1,41 @@
+{{- if .Values.matrixrtc.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrixrtc-jwt
+  namespace: matrix
+spec:
+  replicas: {{ .Values.matrixrtc.jwt.replicas }}
+  selector:
+    matchLabels:
+      app: matrixrtc-jwt
+  template:
+    metadata:
+      labels:
+        app: matrixrtc-jwt
+    spec:
+      containers:
+        - name: jwt
+          image: "{{ .Values.matrixrtc.jwt.image.repository }}:{{ .Values.matrixrtc.jwt.image.tag }}"
+          imagePullPolicy: {{ .Values.matrixrtc.jwt.image.pullPolicy }}
+          env:
+            - name: LIVEKIT_JWT_PORT
+              value: "{{ .Values.matrixrtc.jwt.service.port }}"
+            - name: LIVEKIT_URL
+              value: "https://{{ .Values.matrixrtc.host }}/livekit/sfu"
+            - name: LIVEKIT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: matrixrtc-jwt
+                  key: LIVEKIT_KEY
+            - name: LIVEKIT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: matrixrtc-jwt
+                  key: LIVEKIT_SECRET
+            - name: LIVEKIT_FULL_ACCESS_HOMESERVERS
+              value: "{{ .Values.global.domain }}"
+          ports:
+            - containerPort: {{ .Values.matrixrtc.jwt.service.port }}
+              protocol: TCP
+{{- end }}

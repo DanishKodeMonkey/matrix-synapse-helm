@@ -1,0 +1,15 @@
+{{- if .Values.matrixrtc.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: matrixrtc-jwt
+  namespace: matrix
+spec:
+  selector:
+    app: matrixrtc-jwt
+  ports:
+    - name: http
+      port: {{ .Values.matrixrtc.jwt.service.port }}
+      targetPort: {{ .Values.matrixrtc.jwt.service.port }}
+      protocol: TCP
+{{- end }}

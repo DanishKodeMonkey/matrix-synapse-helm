@@ -1,0 +1,23 @@
+{{- if .Values.matrixrtc.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: livekit-config
+  namespace: matrix
+data:
+  config.yaml: |
+    port: {{ .Values.matrixrtc.livekit.service.port }}
+    bind_addresses:
+      - "0.0.0.0"
+    rtc:
+      tcp_port: {{ .Values.matrixrtc.livekit.rtc.tcpPort }}
+      port_range_start: {{ .Values.matrixrtc.livekit.rtc.portRangeStart }}
+      port_range_end: {{ .Values.matrixrtc.livekit.rtc.portRangeEnd }}
+      use_external_ip: {{ .Values.matrixrtc.livekit.rtc.useExternalIp }}
+    room:
+      auto_create: false
+    logging:
+      level: info
+    keys:
+      {{ required "matrixrtc.livekit.key is required when matrixrtc.enabled=true" .Values.matrixrtc.livekit.key | quote }}: {{ required "matrixrtc.livekit.secret is required when matrixrtc.enabled=true" .Values.matrixrtc.livekit.secret | quote }}
+{{- end }}
