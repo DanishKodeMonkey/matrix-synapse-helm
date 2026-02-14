@@ -5,6 +5,7 @@ metadata:
 data:
   synapse-extra-config.yaml: |
     public_baseurl: "https://{{ .Values.global.domain }}"
+    serve_server_wellknown: true
     enable_registration: true
     enable_registration_without_verification: false
     enable_registration_captcha: true

@@ -1,4 +1,5 @@
 # matrix-synapse-helm
+Written by AI, audited by danishkodemonkey
 
 Helm chart for running a Matrix stack on Kubernetes/k3s:
 
@@ -80,7 +81,7 @@ Enabled with `matrixrtc.enabled: true`:
   - `element.<domain>`
   - `turn.<domain>`
   - `rtc.<domain>` (if MatrixRTC enabled)
-
+- google recaptcha keys, or alternative, see more on this here https://matrix-org.github.io/synapse/v1.45/CAPTCHA_SETUP.html
 ## Files
 
 - `values.yaml`: non-secret defaults and infrastructure settings
@@ -102,8 +103,6 @@ coturn:
   public_ip_static: "<public-ip-for-turn>"
 
 matrixrtc:
-  enabled: true
-  host: "rtc.example.com"
   livekit:
     key: "<livekit-key>"
     secret: "<livekit-secret>"
