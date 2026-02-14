@@ -12,6 +12,10 @@ synapse:
     pullPolicy: IfNotPresent
   port: 8008
   replicas: 1
+  recaptcha:
+    siteKey: "" # set these in a non-commited .secrets.yaml
+    secretKey: "" # set these in a non-commited .secrets.yaml
+  registration_shared_secret: "" # set these in a non-commited .secrets.yaml
 
 element:
   image:
@@ -25,3 +29,44 @@ coturn:
   realm: turn.danishkodemonkey.net
   relay_ip: 192.168.0.150 # internal IP of the cluster node
   turn_url: turn.danishkodemonkey.net
+  turn_shared_secret: ""
+  public_ip_static: ""
+
+matrixrtc:
+  enabled: false
+  host: rtc.danishkodemonkey.net
+  ingressClassName: ""
+  certManagerClusterIssuer: letsencrypt
+
+  livekit:
+    image:
+      repository: livekit/livekit-server
+      tag: v1.9.3
+      pullPolicy: IfNotPresent
+    service:
+      port: 7880
+    hostNetwork: true
+    # Required for media traffic if hostNetwork is enabled.
+    # Open this UDP range on your firewall/router to the k3s node running LiveKit.
+    rtc:
+      tcpPort: 7881
+      portRangeStart: 50100
+      portRangeEnd: 50200
+      useExternalIp: true
+    # livekit API key/secret pair (both required when enabled=true)
+    key: ""
+    secret: ""
+
+  jwt:
+    image:
+      # Example image from your prior manifests. Override with your actual JWT service image.
+      repository: ghcr.io/element-hq/lk-jwt-service
+      tag: latest
+      pullPolicy: IfNotPresent
+    replicas: 1
+    service:
+      port: 8080
+
+  element:
+    # Optional helper value for docs/reference. If set, expose this in your Element config manually.
+    livekit_service_url: "https://rtc.danishkodemonkey.net/livekit/jwt"
