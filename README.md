@@ -1,35 +1,161 @@
 # matrix-synapse-helm
 
-Work in progress – a k3s-based Helm chart for deploying a Matrix server stack on a homelab.
+Helm chart for running a Matrix stack on Kubernetes/k3s:
 
-This Helm chart provides a complete starting point for running your own **Matrix Synapse server**, the **Element frontend**, and a **Coturn TURN server** for voice and video support. The goal is a ready-to-use setup with baseline configurations that you can expand and customize for your needs.
+- Synapse (homeserver)
+- Element Web (client)
+- Coturn (TURN relay)
+- Optional MatrixRTC stack (LiveKit + JWT service)
 
----
+This README explains how to configure and deploy the chart safely.
 
-## Overview of Components
+## File Structure
 
-### Matrix Synapse
+```text
+matrix-synapse/
+├── Chart.yaml
+├── values.yaml
+├── .secrets.yaml
+├── templates/
+│   ├── _helpers.tpl
+│   ├── synapse-*.yaml
+│   ├── element-*.yaml
+│   ├── coturn-*.yaml
+│   ├── livekit-*.yaml
+│   ├── matrixrtc-jwt-*.yaml
+│   └── matrix-rtc-ingress.yaml
+└── README.md
+```
 
-Matrix Synapse is the server component of the Matrix protocol. It handles:
+What goes where and why:
 
-- User accounts and authentication
-- Federated communication with other Matrix servers
-- Storage of chat history, media, and state
+- `Chart.yaml`: Helm chart metadata (name, version, app version). Helm uses this to identify and package the chart.
+- `values.yaml`: Default, non-secret configuration. This is your baseline config committed to git.
+- `.secrets.yaml`: Secret overrides (tokens, shared secrets, private keys). Passed at deploy time and kept out of git.
+- `templates/_helpers.tpl`: Shared Helm template helpers used by multiple manifests.
+- `templates/synapse-*.yaml`: Synapse deployment, service, ingress, PVC, and extra config.
+- `templates/element-*.yaml`: Element deployment, service, ingress, and `config.json`.
+- `templates/coturn-*.yaml`: Coturn deployment/config/secret/certificate resources.
+- `templates/livekit-*.yaml`: LiveKit config, deployment, and service for MatrixRTC media.
+- `templates/matrixrtc-jwt-*.yaml`: JWT service resources used by Element/MatrixRTC auth flow.
+- `templates/matrix-rtc-ingress.yaml`: Public routing for MatrixRTC endpoints (`/livekit/sfu`, `/livekit/jwt`).
+- `README.md`: Human runbook for install, operations, and troubleshooting.
 
-**Persistent storage is crucial**:  
+## What This Chart Deploys
 
-Synapse stores all its data in a `/data` volume, including:
+### Synapse
 
-- User database
-- Media uploads
-- Signing keys
-- Server configuration and state
+- Stateful Matrix homeserver
+- Persistent data on PVC `synapse-data`
+- Ingress on `https://<global.domain>`
 
-Losing this volume can result in **lost users, federations, and server identity**.
+### Element
 
-**Admin user creation**:
+- Web client
+- Ingress on `https://<global.elementDomain>`
 
-Use the official command:
+### Coturn
+
+- TURN server for VoIP reliability
+- Host-networked deployment (binds node network directly)
+- Uses shared-secret auth with Synapse
+
+### MatrixRTC (optional)
+
+Enabled with `matrixrtc.enabled: true`:
+
+- LiveKit server (`/livekit/sfu`)
+- JWT service (`/livekit/jwt`)
+- Ingress on `https://<matrixrtc.host>`
+- Synapse well-known metadata for Element Call discovery
+
+## Prerequisites
+
+- k3s or Kubernetes cluster
+- Namespace `matrix` (or your preferred namespace)
+- Ingress controller (Traefik assumed in current templates)
+- cert-manager + ClusterIssuer (`letsencrypt` by default)
+- Public DNS records for:
+  - `matrix.<domain>`
+  - `element.<domain>`
+  - `turn.<domain>`
+  - `rtc.<domain>` (if MatrixRTC enabled)
+
+## Files
+
+- `values.yaml`: non-secret defaults and infrastructure settings
+- `.secrets.yaml`: sensitive values (do not commit)
+
+## Required Configuration
+
+### Minimal `.secrets.yaml`
+
+```yaml
+synapse:
+  recaptcha:
+    siteKey: "<recaptcha-site-key>"
+    secretKey: "<recaptcha-secret-key>"
+  registration_shared_secret: "<random-long-secret>"
+
+coturn:
+  turn_shared_secret: "<random-long-secret>"
+  public_ip_static: "<public-ip-for-turn>"
+
+matrixrtc:
+  enabled: true
+  host: "rtc.example.com"
+  livekit:
+    key: "<livekit-key>"
+    secret: "<livekit-secret>"
+```
+
+### Important `values.yaml` settings
+
+- `global.domain`: Synapse hostname
+- `global.elementDomain`: Element hostname
+- `coturn.realm` and `coturn.turn_url`: TURN hostname
+- `matrixrtc.ingressClassName`: set explicitly (for k3s + Traefik, set `traefik`)
+- `matrixrtc.livekit.rtc.portRangeStart/End`: UDP range for LiveKit media
+
+## Install / Upgrade
+
+```bash
+kubectl create namespace matrix --dry-run=client -o yaml | kubectl apply -f -
+
+cd matrix-synapse
+helm upgrade --install matrix . \
+  -n matrix \
+  -f values.yaml \
+  -f .secrets.yaml
+```
+
+Recommended safer upgrade:
+
+```bash
+helm upgrade --install matrix . \
+  -n matrix \
+  -f values.yaml \
+  -f .secrets.yaml \
+  --atomic --timeout 10m
+```
+
+## Verify Deployment
+
+```bash
+kubectl get pods -n matrix
+kubectl get ingress -n matrix
+helm status matrix -n matrix
+```
+
+Check live logs for startup issues:
+
+```bash
+kubectl logs -n matrix deploy/synapse --tail=100
+kubectl logs -n matrix deploy/livekit --tail=100
+kubectl logs -n matrix deploy/matrixrtc-jwt --tail=100
+```
+
+## Register an Admin User
 
 ```bash
 kubectl exec -n matrix -it <synapse-pod> -- \
@@ -40,120 +166,97 @@ kubectl exec -n matrix -it <synapse-pod> -- \
   --admin
 ```
 
-# Element (Web Client)
+## Networking and Firewall
 
-Element provides the user interface for interacting with your Matrix server. The chart deploys Element alongside Synapse, including:
+Open/forward these public inbound ports to the correct k3s node(s):
 
-Ingress for access via your domain
+- `80/tcp` and `443/tcp` for ingress
+- Coturn:
+  - `3478/udp`
+  - `3478/tcp`
+  - `5349/tcp` (TURN-TLS)
+  - `49160-49200/udp` (coturn relay range)
+- LiveKit (if enabled):
+  - `7881/tcp` (fallback)
+  - `matrixrtc.livekit.rtc.portRangeStart-End/udp` (media range)
 
-Baseline configuration for connecting to your Synapse server
+Example if using `50300-50400` for LiveKit:
 
-Media proxying through Synapse
-
-Users can register and log in immediately, but reCAPTCHA and registration secrets are configurable via .secrets.yaml to prevent spam or unauthorized accounts.
-
-# Coturn (TURN Server)
-
-Coturn provides voice and video relay capabilities for WebRTC in Matrix. Without it, peer-to-peer voice/video often fails due to NAT or firewall restrictions.
-
-Key features configured in this chart:
-
-Listening on standard TURN ports (3478 UDP/TCP) and TLS (5349)
-
-Relay IP set to your internal homelab IP
-
-External IP set to your public static IP (or the IP used by your DNS record)
-
-Secret-based authentication (static-auth-secret) for secure usage
-
-UDP port range (49160-49200) for relayed traffic
-
-Logging to stdout for easy debugging in Kubernetes
-
-Notes on TLS:
-
-TLS for Coturn is currently not enabled. Certificates can be provisioned via Cert-Manager and ACME (Let’s Encrypt).
-
-Once certificates exist, the Coturn config can be updated to use cert-file and pkey-file for encrypted voice/video connections.
-
-Testing Coturn:
-
-A quick test for connectivity:
-```bash
-nc -vuz turn.example.com 3478
-```
-
-# Deployment
-## Prerequisites
-
-k3s cluster (or other Kubernetes cluster)
-
-A dedicated namespace (recommended: matrix)
-
-Ingress controller (e.g., Traefik)
-
-Cert-Manager for TLS (optional, for Element and future Coturn TLS)
-
-Install / Upgrade
-
-Secrets are stored in .secrets.yaml and values in values.yaml. Example:
-```bash
-helm upgrade --install matrix ./ -n matrix -f values.yaml -f .secrets.yaml
-```
-
-example `.secrets.yaml`
 ```yaml
-synapse:
-  recaptcha:
-    siteKey: "<Google reCAPTCHA site key>"
-    secretKey: "<Google reCAPTCHA secret key>"
-  registration_shared_secret: "<random-secret-string>"
-
-coturn:
-  turn_shared_secret: "<random-long-secret>"
-  public_ip_static: "<your public IP reachable by UDP>"
+matrixrtc:
+  livekit:
+    rtc:
+      portRangeStart: 50300
+      portRangeEnd: 50400
 ```
 
-Persistent Volume Claims (PVCs)
+## Cloudflare Notes
 
-PVCs store all essential Synapse data:
+If using Cloudflare proxy/tunnel:
 
-- Database files
+- `turn.<domain>` should be DNS-only (no orange-cloud proxy) for TURN ports.
+- `rtc.<domain>` is best as DNS-only for stable WebRTC/media behavior.
+- If Cloudflare Access is enabled, bypass auth for:
+  - `https://matrix.<domain>/_matrix/*`
+  - `https://matrix.<domain>/_synapse/*`
+  - `https://rtc.<domain>/livekit/*`
+  - all `turn.<domain>` traffic
 
-- Media uploads
+## MatrixRTC Functional Check
 
-- Signing keys
+1. Verify Synapse well-known advertises RTC focus:
 
-- Configuration
-
-Without the PVC, data loss is likely, including user accounts and federation trust.
-
-
-# Ingress and DNS
-
-- The chart uses Ingresses for Element and Synapse traffic.
-
-- Example Traefik annotations:
-```yaml
-annotations:
-  kubernetes.io/ingress.class: traefik
-  traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-  cert-manager.io/cluster-issuer: letsencrypt
+```bash
+curl -s https://matrix.example.com/.well-known/matrix/client
 ```
-- Your domain should point to your public IP via DNS (e.g., matrix.example.com for Synapse, turn.example.com for Coturn).
 
-# Notes and TODOs
+Expected key:
 
-TLS for Coturn is not yet configured.
+- `org.matrix.msc4143.rtc_foci`
+- includes `livekit_service_url: https://rtc.example.com/livekit/jwt`
 
-Make sure UDP ports for Coturn are open on your firewall/router.
+2. In Element, start a room call.
+3. Confirm `livekit` and `matrixrtc-jwt` pods stay `Running`.
 
-Regularly back up the /data PVC to avoid losing users, media, or server identity.
+## Troubleshooting
 
-# This chart provides a homelab-ready setup with Synapse, Element, and Coturn. From here, you can expand with:
+### `MISSING_MATRIX_RTC_FOCUS`
 
-- Custom Synapse modules
+Cause: Synapse is not advertising MatrixRTC focus in well-known.
 
-- Advanced Coturn configuration
+Check that chart rendered and applied:
 
-- Additional Element settings for branding or privacy
+- `extra_well_known_client_content.org.matrix.msc4143.rtc_foci`
+- `public_baseurl`
+
+Then restart Synapse deployment.
+
+### LiveKit crash with `LIVEKIT_PORT=tcp://...`
+
+Cause: Kubernetes service-link env var collision.
+
+Fix in chart: `enableServiceLinks: false` for LiveKit pod.
+
+### Upgrade error: Secret `type` is immutable
+
+If you changed secret type in templates, delete and recreate the secret once:
+
+```bash
+kubectl delete secret coturn-secret -n matrix
+helm upgrade --install matrix . -n matrix -f values.yaml -f .secrets.yaml
+```
+
+## Rollback
+
+```bash
+helm history matrix -n matrix
+helm rollback matrix <revision> -n matrix
+```
+
+Note: Rollback restores Kubernetes manifests, not historical PVC data.
+
+## Security Notes
+
+- Keep `.secrets.yaml` out of git.
+- Rotate Synapse/Coturn/LiveKit secrets if exposed.
+- Back up Synapse PVC regularly.
