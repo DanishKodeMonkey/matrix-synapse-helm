@@ -5,7 +5,17 @@ metadata:
 data:
   synapse-extra-config.yaml: |
     public_baseurl: "https://{{ .Values.global.domain }}"
-    serve_server_wellknown: true
+    serve_server_wellknown: {{ .Values.synapse.wellKnown.serveServer | default true }}
+{{- if .Values.synapse.wellKnown.delegatedServer }}
+    extra_well_known_server_content:
+      m.server: "{{ .Values.synapse.wellKnown.delegatedServer }}"
+{{- end }}
+{{- if .Values.synapse.federation.whitelist }}
+    federation_domain_whitelist:
+{{- range .Values.synapse.federation.whitelist }}
+      - "{{ . }}"
+{{- end }}
+{{- end }}
     enable_registration: true
     enable_registration_without_verification: false
     enable_registration_captcha: true
@@ -20,6 +30,8 @@ data:
     turn_shared_secret: "{{ .Values.coturn.turn_shared_secret}}"
     turn_user_lifetime: 86400000
     turn_allow_guests: true
+    allow_public_rooms_over_federation: {{ .Values.synapse.publicRooms.allowOverFederation | default true }}
+    allow_public_rooms_without_auth: {{ .Values.synapse.publicRooms.allowWithoutAuth | default true }}
 {{- if .Values.matrixrtc.enabled }}
     extra_well_known_client_content:
       org.matrix.msc4143.rtc_foci:
@@ -31,4 +43,4 @@ data:
         user_id: '*'
         room_id: '*'
         alias: '*'
-        require_admin: true
+        require_admin: {{ .Values.synapse.publicRooms.requireAdminToPublish | default true }}

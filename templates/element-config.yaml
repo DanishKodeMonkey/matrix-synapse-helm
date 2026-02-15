@@ -28,7 +28,7 @@ data:
         ],
         "bug_report_endpoint_url": "https://rageshakes.element.io/api/submit",
         "defaultCountryCode": "GB",
-        "show_labs_settings": false,
+        "show_labs_settings": true,
         "features": {},
         "default_federate": true,
         "default_theme": "light",

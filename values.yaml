@@ -16,6 +16,22 @@ synapse:
     siteKey: "" # set these in a non-commited .secrets.yaml
     secretKey: "" # set these in a non-commited .secrets.yaml
   registration_shared_secret: "" # set these in a non-commited .secrets.yaml
+  wellKnown:
+    # Whether Synapse should serve /.well-known/matrix/server.
+    serveServer: true
+    # Optional delegation target for federation discovery (m.server), e.g. matrix.example.com:443.
+    delegatedServer: "matrix.danishkodemonkey.net:443"
+  federation:
+    # Optional allowlist of remote homeserver domains for federation.
+    # Leave empty to allow normal federation with any server.
+    whitelist: ["noidorith.net"]
+  publicRooms:
+    # Allow other homeservers to query this server's public room directory.
+    allowOverFederation: true
+    # Allow unauthenticated directory queries.
+    allowWithoutAuth: true
+    # Require local admins to publish rooms/spaces to the directory.
+    requireAdminToPublish: true
 
 element:
   image:
