@@ -1,0 +1,49 @@
+{{- if .Values.element.staticPages.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: element-static
+  namespace: matrix
+spec:
+  replicas: {{ .Values.element.staticPages.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: element-static
+  template:
+    metadata:
+      labels:
+        app: element-static
+    spec:
+      containers:
+        - name: nginx
+          image: "{{ .Values.element.staticPages.image.repository }}:{{ .Values.element.staticPages.image.tag }}"
+          imagePullPolicy: {{ .Values.element.staticPages.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - containerPort: {{ .Values.element.staticPages.port | default 80 }}
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: pages
+              mountPath: /usr/share/nginx/html/pages
+            - name: assets
+              mountPath: /usr/share/nginx/html/static-assets
+          readinessProbe:
+            httpGet:
+              path: /pages/home.html
+              port: {{ .Values.element.staticPages.port | default 80 }}
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /pages/home.html
+              port: {{ .Values.element.staticPages.port | default 80 }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: pages
+          configMap:
+            name: element-static-pages
+        - name: assets
+          configMap:
+            name: element-static-assets
+{{- end }}

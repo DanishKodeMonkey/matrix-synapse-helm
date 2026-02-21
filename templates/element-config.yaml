@@ -3,45 +3,66 @@ kind: ConfigMap
 metadata:
   name: element-config
   namespace: matrix
+{{- $presenceByHsUrl := dict (printf "https://%s" .Values.global.domain) (.Values.element.ui.enablePresence | default false) }}
+{{- $roomDirectoryServers := .Values.element.ui.roomDirectoryServers | default (list .Values.global.domain) }}
+{{- $config := dict
+  "default_server_config" (dict
+    "m.homeserver" (dict
+      "base_url" (printf "https://%s" .Values.global.domain)
+      "server_name" .Values.global.domain
+    )
+    "m.identity_server" (dict "base_url" "https://vector.im")
+  )
+  "disable_custom_urls" (.Values.element.ui.disableCustomUrls | default false)
+  "disable_guests" (.Values.element.ui.disableGuests | default false)
+  "disable_login_language_selector" (.Values.element.ui.disableLoginLanguageSelector | default false)
+  "disable_3pid_login" (.Values.element.ui.disable3pidLogin | default false)
+  "brand" (.Values.element.branding.appName | default "Element")
+  "integrations_ui_url" (.Values.element.integrations.uiUrl | default "https://scalar.vector.im/")
+  "integrations_rest_url" (.Values.element.integrations.restUrl | default "https://scalar.vector.im/api")
+  "integrations_widgets_urls" (.Values.element.integrations.widgetsUrls | default (list "https://scalar.vector.im/_matrix/integrations/v1" "https://scalar.vector.im/api"))
+  "bug_report_endpoint_url" (.Values.element.bugReportEndpointUrl | default "https://rageshakes.element.io/api/submit")
+  "default_country_code" (.Values.element.ui.defaultCountryCode | default "GB")
+  "show_labs_settings" (.Values.element.ui.showLabsSettings | default true)
+  "features" (.Values.element.features | default dict)
+  "default_federate" (.Values.element.ui.defaultFederate | default true)
+  "default_theme" (.Values.element.ui.defaultTheme | default "light")
+  "room_directory" (dict "servers" $roomDirectoryServers)
+  "enable_presence_by_hs_url" $presenceByHsUrl
+  "setting_defaults" (.Values.element.settingDefaults | default (dict "breadcrumbs" true))
+  "jitsi" (dict "preferred_domain" (.Values.element.jitsi.preferredDomain | default "meet.element.io"))
+}}
+{{- $branding := dict }}
+{{- if .Values.element.branding.authHeaderLogoUrl }}
+{{- $_ := set $branding "auth_header_logo_url" .Values.element.branding.authHeaderLogoUrl }}
+{{- end }}
+{{- if .Values.element.branding.welcomeBackgroundUrl }}
+{{- $_ := set $branding "welcome_background_url" .Values.element.branding.welcomeBackgroundUrl }}
+{{- end }}
+{{- if .Values.element.branding.userNotice }}
+{{- $_ := set $branding "user_notice" .Values.element.branding.userNotice }}
+{{- end }}
+{{- if .Values.element.branding.authFooterLinks }}
+{{- $_ := set $branding "auth_footer_links" .Values.element.branding.authFooterLinks }}
+{{- end }}
+{{- if gt (len $branding) 0 }}
+{{- $_ := set $config "branding" $branding }}
+{{- end }}
+{{- if .Values.element.embeddedPages.enabled }}
+{{- $embeddedPages := dict }}
+{{- if .Values.element.embeddedPages.homeUrl }}
+{{- $_ := set $embeddedPages "home_url" .Values.element.embeddedPages.homeUrl }}
+{{- end }}
+{{- if .Values.element.embeddedPages.welcomeUrl }}
+{{- $_ := set $embeddedPages "welcome_url" .Values.element.embeddedPages.welcomeUrl }}
+{{- end }}
+{{- if gt (len $embeddedPages) 0 }}
+{{- $_ := set $config "embedded_pages" $embeddedPages }}
+{{- end }}
+{{- end }}
+{{- if .Values.element.extraConfig }}
+{{- $config = mergeOverwrite $config .Values.element.extraConfig }}
+{{- end }}
 data:
   config.json: |
-    {
-        "default_server_config": {
-            "m.homeserver": {
-                "base_url": "https://{{ .Values.global.domain }}",
-                "server_name": "{{ .Values.global.domain }}"
-            },
-            "m.identity_server": {
-                "base_url": "https://vector.im"
-            }
-        },
-        "disable_custom_urls": false,
-        "disable_guests": false,
-        "disable_login_language_selector": false,
-        "disable_3pid_login": false,
-        "brand": "Element",
-        "integrations_ui_url": "https://scalar.vector.im/",
-        "integrations_rest_url": "https://scalar.vector.im/api",
-        "integrations_widgets_urls": [
-            "https://scalar.vector.im/_matrix/integrations/v1",
-            "https://scalar.vector.im/api"
-        ],
-        "bug_report_endpoint_url": "https://rageshakes.element.io/api/submit",
-        "defaultCountryCode": "GB",
-        "show_labs_settings": true,
-        "features": {},
-        "default_federate": true,
-        "default_theme": "light",
-        "room_directory": {
-            "servers": ["{{ .Values.global.domain }}"]
-        },
-        "enable_presence_by_hs_url": {
-            "https://{{ .Values.global.domain }}": false
-        },
-        "setting_defaults": {
-            "breadcrumbs": true
-        },
-        "jitsi": {
-            "preferred_domain": "meet.element.io"
-        }
-    }
+{{ $config | toPrettyJson | nindent 4 }}

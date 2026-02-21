@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Danish Kode Matrix</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --panel: #161b22;
+        --text: #e6edf3;
+        --muted: #9ba6b2;
+        --accent: #2ea043;
+        --border: #30363d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at 20% 0%, #1f2937, var(--bg) 50%);
+        color: var(--text);
+      }
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 48px 20px;
+      }
+      .hero {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 2rem;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+      }
+      a {
+        color: #58a6ff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .cta {
+        display: inline-block;
+        margin-top: 16px;
+        background: var(--accent);
+        color: white;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-weight: 600;
+      }
+      footer {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="hero">
+        <h1>Danish Kode Matrix</h1>
+        <p>
+          Private community Matrix server for chat, collaboration, and calls.
+          Start with the welcome guide, then read the rules before joining rooms.
+        </p>
+        <a class="cta" href="/pages/welcome.html">Open Welcome Guide</a>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Server Rules</h2>
+          <p>Behavior expectations, moderation policy, and escalation flow.</p>
+          <p><a href="/pages/rules.html">Read rules</a></p>
+        </article>
+        <article class="card">
+          <h2>Getting Started</h2>
+          <p>Client setup, profile basics, and recommended first rooms.</p>
+          <p><a href="/pages/welcome.html">Read guide</a></p>
+        </article>
+        <article class="card">
+          <h2>Homeserver</h2>
+          <p>Primary homeserver: <code>matrix.danishkodemonkey.net</code></p>
+          <p><a href="https://element.danishkodemonkey.net">Open Element</a></p>
+        </article>
+      </section>
+
+      <footer>
+        <p>
+          Maintained by Danish Kode Matrix admins. For support, message the admin
+          team in the announcements room.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

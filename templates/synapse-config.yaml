@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: synapse-extra-config
+{{- $captchaEnabled := .Values.synapse.registration.captchaEnabled | default true }}
 data:
   synapse-extra-config.yaml: |
     public_baseurl: "https://{{ .Values.global.domain }}"
@@ -16,12 +17,30 @@ data:
       - "{{ . }}"
 {{- end }}
 {{- end }}
-    enable_registration: true
-    enable_registration_without_verification: false
-    enable_registration_captcha: true
+    enable_registration: {{ .Values.synapse.registration.enabled | default true }}
+    enable_registration_without_verification: {{ .Values.synapse.registration.allowWithoutVerification | default false }}
+    enable_registration_captcha: {{ $captchaEnabled }}
+{{- if $captchaEnabled }}
     recaptcha_public_key: "{{ .Values.synapse.recaptcha.siteKey }}"
     recaptcha_private_key: "{{ .Values.synapse.recaptcha.secretKey }}"
+{{- end }}
     registration_shared_secret: "{{ .Values.synapse.registration_shared_secret }}"
+    registration_requires_token: {{ .Values.synapse.registration.requiresToken | default false }}
+{{- if .Values.synapse.onboarding.autoJoinRooms }}
+    auto_join_rooms:
+{{- range .Values.synapse.onboarding.autoJoinRooms }}
+      - "{{ . }}"
+{{- end }}
+{{- end }}
+{{- if .Values.synapse.onboarding.autoCreateAutoJoinRooms }}
+    autocreate_auto_join_rooms: true
+{{- end }}
+{{- if .Values.synapse.onboarding.autoJoinRoomsFederated }}
+    autocreate_auto_join_rooms_federated: true
+{{- end }}
+{{- if .Values.synapse.onboarding.autoJoinMxidLocalpart }}
+    auto_join_mxid_localpart: "{{ .Values.synapse.onboarding.autoJoinMxidLocalpart }}"
+{{- end }}
     turn_uris:
       - "turn:{{ .Values.coturn.turn_url }}:3478?transport=udp"
       - "turn:{{ .Values.coturn.turn_url }}:3478?transport=tcp"
@@ -38,9 +57,76 @@ data:
         - type: livekit
           livekit_service_url: "https://{{ .Values.matrixrtc.host }}/livekit/jwt"
 {{- end }}
+{{- if .Values.synapse.moderation.aliasCreationRules }}
+    alias_creation_rules:
+{{ toYaml .Values.synapse.moderation.aliasCreationRules | nindent 6 }}
+{{- end }}
+{{- if .Values.synapse.moderation.roomListPublicationRules }}
+    room_list_publication_rules:
+{{ toYaml .Values.synapse.moderation.roomListPublicationRules | nindent 6 }}
+{{- else }}
     room_list_publication_rules:
       - action: allow
         user_id: '*'
         room_id: '*'
         alias: '*'
         require_admin: {{ .Values.synapse.publicRooms.requireAdminToPublish | default true }}
+{{- end }}
+{{- if .Values.synapse.retention.enabled }}
+    retention:
+      enabled: true
+{{- if or .Values.synapse.retention.defaultPolicy.minLifetime .Values.synapse.retention.defaultPolicy.maxLifetime }}
+      default_policy:
+{{- if .Values.synapse.retention.defaultPolicy.minLifetime }}
+        min_lifetime: "{{ .Values.synapse.retention.defaultPolicy.minLifetime }}"
+{{- end }}
+{{- if .Values.synapse.retention.defaultPolicy.maxLifetime }}
+        max_lifetime: "{{ .Values.synapse.retention.defaultPolicy.maxLifetime }}"
+{{- end }}
+{{- end }}
+{{- if .Values.synapse.retention.allowedLifetimeMin }}
+      allowed_lifetime_min: "{{ .Values.synapse.retention.allowedLifetimeMin }}"
+{{- end }}
+{{- if .Values.synapse.retention.allowedLifetimeMax }}
+      allowed_lifetime_max: "{{ .Values.synapse.retention.allowedLifetimeMax }}"
+{{- end }}
+{{- end }}
+{{- if .Values.synapse.mediaRetention.enabled }}
+    media_retention:
+{{- if .Values.synapse.mediaRetention.localMediaLifetime }}
+      local_media_lifetime: "{{ .Values.synapse.mediaRetention.localMediaLifetime }}"
+{{- end }}
+{{- if .Values.synapse.mediaRetention.remoteMediaLifetime }}
+      remote_media_lifetime: "{{ .Values.synapse.mediaRetention.remoteMediaLifetime }}"
+{{- end }}
+{{- end }}
+{{- if .Values.synapse.media.maxUploadSize }}
+    max_upload_size: "{{ .Values.synapse.media.maxUploadSize }}"
+{{- end }}
+{{- if or .Values.synapse.media.urlPreviewsEnabled .Values.synapse.media.urlPreviewIpRangeBlacklist .Values.synapse.media.urlPreviewIpRangeWhitelist }}
+    url_preview_enabled: {{ .Values.synapse.media.urlPreviewsEnabled | default false }}
+{{- if .Values.synapse.media.urlPreviewIpRangeBlacklist }}
+    url_preview_ip_range_blacklist:
+{{- range .Values.synapse.media.urlPreviewIpRangeBlacklist }}
+      - "{{ . }}"
+{{- end }}
+{{- end }}
+{{- if .Values.synapse.media.urlPreviewIpRangeWhitelist }}
+    url_preview_ip_range_whitelist:
+{{- range .Values.synapse.media.urlPreviewIpRangeWhitelist }}
+      - "{{ . }}"
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .Values.synapse.serverNotices.enabled }}
+    server_notices:
+      system_mxid_localpart: "{{ .Values.synapse.serverNotices.systemMxidLocalpart }}"
+      room_name: "{{ .Values.synapse.serverNotices.roomName }}"
+      auto_join: {{ .Values.synapse.serverNotices.autoJoin | default true }}
+{{- if .Values.synapse.serverNotices.roomAvatarUrl }}
+      room_avatar_url: "{{ .Values.synapse.serverNotices.roomAvatarUrl }}"
+{{- end }}
+{{- if .Values.synapse.serverNotices.roomTopic }}
+      room_topic: "{{ .Values.synapse.serverNotices.roomTopic }}"
+{{- end }}
+{{- end }}

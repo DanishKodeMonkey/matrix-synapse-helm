@@ -13,6 +13,22 @@ spec:
     - host: {{ .Values.global.elementDomain }}
       http:
         paths:
+{{- if .Values.element.staticPages.enabled }}
+          - path: {{ .Values.element.staticPages.pathPrefix | default "/pages" }}
+            pathType: Prefix
+            backend:
+              service:
+                name: element-static
+                port:
+                  number: {{ .Values.element.staticPages.port | default 80 }}
+          - path: {{ .Values.element.staticPages.assetsPathPrefix | default "/static-assets" }}
+            pathType: Prefix
+            backend:
+              service:
+                name: element-static
+                port:
+                  number: {{ .Values.element.staticPages.port | default 80 }}
+{{- end }}
           - path: /
             pathType: Prefix
             backend:

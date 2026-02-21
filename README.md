@@ -116,6 +116,80 @@ matrixrtc:
 - `matrixrtc.ingressClassName`: set explicitly (for k3s + Traefik, set `traefik`)
 - `matrixrtc.livekit.rtc.portRangeStart/End`: UDP range for LiveKit media
 
+## Customization Examples
+
+Keep non-secret configuration in `values.yaml` and secret overrides in `.secrets.yaml`.
+
+### Element branding and embedded pages
+
+```yaml
+element:
+  branding:
+    appName: "Danish Kode Matrix"
+    authHeaderLogoUrl: "https://element.danishkodemonkey.net/static-assets/logo.svg"
+    welcomeBackgroundUrl: "https://element.danishkodemonkey.net/static-assets/welcome-bg.svg"
+    userNotice: "By logging in, you agree to server rules."
+    authFooterLinks:
+      - text: "Server Rules"
+        url: "https://element.danishkodemonkey.net/pages/rules.html"
+  embeddedPages:
+    enabled: true
+    homeUrl: "https://element.danishkodemonkey.net/pages/home.html"
+    welcomeUrl: "https://element.danishkodemonkey.net/pages/welcome.html"
+```
+
+### Synapse onboarding, retention, and moderation
+
+```yaml
+synapse:
+  registration:
+    enabled: true
+    requiresToken: true
+  onboarding:
+    autoJoinRooms:
+      - "#announcements:matrix.danishkodemonkey.net"
+      - "#rules:matrix.danishkodemonkey.net"
+    autoJoinMxidLocalpart: "system"
+  retention:
+    enabled: true
+    defaultPolicy:
+      maxLifetime: "90d"
+  media:
+    maxUploadSize: "100M"
+  serverNotices:
+    enabled: true
+    systemMxidLocalpart: "notices"
+    roomName: "Server Notices"
+```
+
+### Advanced Element overrides
+
+Set any additional Element `config.json` keys via:
+
+```yaml
+element:
+  extraConfig:
+    permalink_prefix: "https://matrix.danishkodemonkey.net"
+```
+
+### Serve local `/pages` with in-cluster Nginx
+
+```yaml
+element:
+  staticPages:
+    enabled: true
+    pathPrefix: /pages
+    assetsPathPrefix: /static-assets
+```
+
+This serves files from chart folder `static/pages/*` at:
+
+- `https://<element-domain>/pages/home.html`
+- `https://<element-domain>/pages/welcome.html`
+- `https://<element-domain>/pages/rules.html`
+- `https://<element-domain>/static-assets/logo.svg`
+- `https://<element-domain>/static-assets/welcome-bg.svg`
+
 ## Install / Upgrade
 
 ```bash

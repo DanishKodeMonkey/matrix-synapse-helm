@@ -1,0 +1,12 @@
+{{- if .Values.element.staticPages.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-static-assets
+  namespace: matrix
+data:
+  logo.svg: |
+{{ .Files.Get "static/assets/logo.svg" | nindent 4 }}
+  welcome-bg.svg: |
+{{ .Files.Get "static/assets/welcome-bg.svg" | nindent 4 }}
+{{- end }}

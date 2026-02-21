@@ -16,6 +16,11 @@ synapse:
     siteKey: "" # set these in a non-commited .secrets.yaml
     secretKey: "" # set these in a non-commited .secrets.yaml
   registration_shared_secret: "" # set these in a non-commited .secrets.yaml
+  registration:
+    enabled: true
+    allowWithoutVerification: false
+    captchaEnabled: true
+    requiresToken: false
   wellKnown:
     # Whether Synapse should serve /.well-known/matrix/server.
     serveServer: true
@@ -29,9 +34,44 @@ synapse:
     # Allow other homeservers to query this server's public room directory.
     allowOverFederation: true
     # Allow unauthenticated directory queries.
-    allowWithoutAuth: true
+    allowWithoutAuth: false
     # Require local admins to publish rooms/spaces to the directory.
     requireAdminToPublish: true
+  onboarding:
+    autoJoinRooms:
+      - "#announcements:matrix.danishkodemonkey.net"
+      - "#rules:matrix.danishkodemonkey.net"
+    autoCreateAutoJoinRooms: false
+    autoJoinRoomsFederated: false
+    autoJoinMxidLocalpart: "system"
+  moderation:
+    # Optional explicit override. If empty, chart falls back to publicRooms.requireAdminToPublish.
+    roomListPublicationRules: []
+    # Optional alias creation policy rules. Leave empty for Synapse defaults.
+    aliasCreationRules: []
+  retention:
+    enabled: false
+    defaultPolicy:
+      minLifetime: ""
+      maxLifetime: ""
+    allowedLifetimeMin: ""
+    allowedLifetimeMax: ""
+  mediaRetention:
+    enabled: true
+    localMediaLifetime: "365d"
+    remoteMediaLifetime: "365d"
+  media:
+    maxUploadSize: "100M"
+    urlPreviewsEnabled: true
+    urlPreviewIpRangeBlacklist: []
+    urlPreviewIpRangeWhitelist: []
+  serverNotices:
+    enabled: true
+    systemMxidLocalpart: "notices"
+    roomName: "Server Notices"
+    roomAvatarUrl: ""
+    roomTopic: "Official updates, policy changes, and maintenance notices."
+    autoJoin: true
 
 element:
   image:
@@ -40,6 +80,57 @@ element:
     pullPolicy: IfNotPresent
   port: 80
   replicas: 1
+  branding:
+    appName: "Danish Kode Monkey Matrix"
+    authHeaderLogoUrl: "https://element.danishkodemonkey.net/static-assets/logo.svg"
+    welcomeBackgroundUrl: "https://element.danishkodemonkey.net/static-assets/welcome-bg.svg"
+    authFooterLinks:
+      - text: "Server Rules"
+        url: "https://element.danishkodemonkey.net/pages/rules.html"
+      - text: "Getting Started"
+        url: "https://element.danishkodemonkey.net/pages/welcome.html"
+    userNotice: "By signing in, you agree to the server rules and moderation policy."
+  embeddedPages:
+    enabled: false
+    homeUrl: ""
+    welcomeUrl: ""
+  staticPages:
+    enabled: true
+    image:
+      repository: nginx
+      tag: "1.27-alpine"
+      pullPolicy: IfNotPresent
+    replicas: 1
+    port: 80
+    pathPrefix: /pages
+    assetsPathPrefix: /static-assets
+  ui:
+    disableCustomUrls: false
+    disableGuests: false
+    disableLoginLanguageSelector: false
+    disable3pidLogin: false
+    defaultCountryCode: "GB"
+    showLabsSettings: true
+    defaultFederate: true
+    defaultTheme: "dark"
+    roomDirectoryServers:
+      - "matrix.danishkodemonkey.net"
+    enablePresence: true
+  integrations:
+    uiUrl: "https://scalar.vector.im/"
+    restUrl: "https://scalar.vector.im/api"
+    widgetsUrls:
+      - "https://scalar.vector.im/_matrix/integrations/v1"
+      - "https://scalar.vector.im/api"
+  jitsi:
+    preferredDomain: "meet.element.io"
+  bugReportEndpointUrl: "https://rageshakes.element.io/api/submit"
+  features: {}
+  settingDefaults:
+    breadcrumbs: true
+  # Arbitrary JSON object merged into generated Element config last.
+  extraConfig:
+    permalink_prefix: "https://matrix.danishkodemonkey.net"
 
 coturn:
   realm: turn.danishkodemonkey.net

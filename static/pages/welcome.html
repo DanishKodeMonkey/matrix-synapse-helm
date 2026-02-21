@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome | Danish Kode Matrix</title>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --panel: #ffffff;
+        --text: #1f2937;
+        --muted: #556070;
+        --accent: #0f766e;
+        --border: #d9e0ea;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #eaf2ff 0%, var(--bg) 30%);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+      }
+      h1 { margin: 0 0 8px; }
+      h2 { margin-top: 22px; }
+      p, li { color: var(--muted); line-height: 1.55; }
+      code {
+        background: #eef2f7;
+        border-radius: 5px;
+        padding: 2px 6px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .btn {
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        text-decoration: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-weight: 600;
+      }
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="panel">
+        <h1>Welcome to Danish Kode Matrix</h1>
+        <p>
+          This page covers first-login setup and where to go next.
+        </p>
+
+        <h2>1. Sign in</h2>
+        <ul>
+          <li>Open Element at <code>https://element.danishkodemonkey.net</code>.</li>
+          <li>Use homeserver <code>matrix.danishkodemonkey.net</code> if asked.</li>
+          <li>Complete registration using your invite/token workflow.</li>
+        </ul>
+
+        <h2>2. Secure your account</h2>
+        <ul>
+          <li>Set recovery and cross-signing as soon as possible.</li>
+          <li>Use a unique password and enable any available device security.</li>
+          <li>Review active sessions and remove unknown devices.</li>
+        </ul>
+
+        <h2>3. Join core rooms</h2>
+        <ul>
+          <li><code>#announcements:matrix.danishkodemonkey.net</code></li>
+          <li><code>#rules:matrix.danishkodemonkey.net</code></li>
+        </ul>
+
+        <div class="actions">
+          <a class="btn primary" href="https://element.danishkodemonkey.net">Open Element</a>
+          <a class="btn" href="/pages/rules.html">Read Rules</a>
+          <a class="btn" href="/pages/home.html">Back to Home</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

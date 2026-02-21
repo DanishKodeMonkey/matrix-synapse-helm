@@ -1,0 +1,16 @@
+{{- if .Values.element.staticPages.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: element-static
+  namespace: matrix
+  labels:
+    app: element-static
+spec:
+  selector:
+    app: element-static
+  ports:
+    - port: {{ .Values.element.staticPages.port | default 80 }}
+      targetPort: {{ .Values.element.staticPages.port | default 80 }}
+      name: http
+{{- end }}

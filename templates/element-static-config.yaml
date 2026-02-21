@@ -1,0 +1,14 @@
+{{- if .Values.element.staticPages.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-static-pages
+  namespace: matrix
+data:
+  home.html: |
+{{ .Files.Get "static/pages/home.html" | nindent 4 }}
+  welcome.html: |
+{{ .Files.Get "static/pages/welcome.html" | nindent 4 }}
+  rules.html: |
+{{ .Files.Get "static/pages/rules.html" | nindent 4 }}
+{{- end }}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Danish Kode Matrix logo">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ea043"/>
+      <stop offset="100%" stop-color="#1f6feb"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="#0d1117"/>
+  <rect x="40" y="40" width="432" height="432" rx="70" fill="url(#g)" opacity="0.15"/>
+  <g fill="#e6edf3">
+    <path d="M132 108h38v296h-38z"/>
+    <path d="M342 108h38v296h-38z"/>
+    <circle cx="256" cy="188" r="22"/>
+    <circle cx="256" cy="256" r="22"/>
+    <circle cx="256" cy="324" r="22"/>
+  </g>
+  <text x="256" y="434" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" fill="#e6edf3">
+    DKM
+  </text>
+</svg>
